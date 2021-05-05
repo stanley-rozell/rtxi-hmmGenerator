@@ -20,6 +20,9 @@
  * This is a template header file for a user modules derived from
  * DefaultGUIModel with a custom GUI.
  */
+#ifndef HMM_GENERATOR_H
+#define HMM_GENERATOR_H
+
 //#include "Time.h"
 
 //#include "include/BabyClass.h" // todo deleteme
@@ -28,11 +31,7 @@
 #include <iterator> //
 #include <tuple>
 
-//these live in module_help
-#include <printFuns.hpp>
-#include <shuttleFuns.hpp>
-#include <hmm_vec.hpp>
-
+#include <hmm.h>
 
 class HmmGenerator : public DefaultGUIModel
 {
@@ -44,15 +43,13 @@ public:
   virtual ~HmmGenerator(void);
 
   void execute(void);
-  void createGUI(DefaultGUIModel::variable_t*, int);
+  void createGUI(DefaultGUIModel::variable_t *, int);
   void customizeGUI(void);
-
 
 protected:
   virtual void update(DefaultGUIModel::update_flags_t);
 
 private:
-
   //should these be extern statements?
 
   int getSkip; //weird
@@ -63,12 +60,12 @@ private:
 
   int bufflen;
   int buffi;
-//s  double rep_count;
+  //s  double rep_count;
   std::vector<int> spike_buff;
   std::vector<int> state_buff;
   std::vector<int> state_guess_buff;
 
-//--- HMM guess params
+  //--- HMM guess params
   double pfr1;
   double pfr2;
   double ptr1;
@@ -84,12 +81,14 @@ private:
   void initParameters();
   void stepHMM();
   void decodeSpkBuffer();
-  int* decodeHMM(HMMv);
+  int *decodeHMM(HMMv);
   void restartHMM();
-void printStuff();
+  void printStuff();
 
 private slots:
   // these are custom functions that can also be connected to events
   // through the Qt API. they must be implemented in plugin_template.cpp
   void aBttn_event(void);
 };
+
+#endif
