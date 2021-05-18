@@ -32,6 +32,7 @@ to do list:
 
 */
 
+// #include "../include/hmm_generator.h"
 #include "hmm_generator.h"
 #include "moc_hmm_generator.cpp"
 
@@ -51,6 +52,17 @@ static DefaultGUIModel::variable_t vars[] = {
         "Tooltip description",
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE,
     },
+    {
+        "Num States",
+        "Number of discrete latent states",
+        DefaultGUIModel::PARAMETER | DefaultGUIModel::INTEGER,
+    },
+    {
+        "Buffer Length",
+        "Number of samples to store for decoding",
+        DefaultGUIModel::PARAMETER | DefaultGUIModel::INTEGER,
+    },
+
     {
         "FR 1",
         "Firing rate",
@@ -73,17 +85,17 @@ static DefaultGUIModel::variable_t vars[] = {
     },
     {
         "Spike",
-        "ooze",
+        "Discrete-valued HMM output",
         DefaultGUIModel::OUTPUT,
     },
     {
         "TrueState",
-        "return of the ooze",
+        "True latent discrete-val state",
         DefaultGUIModel::OUTPUT,
     },
     {
         "GuessState",
-        "snooze",
+        "Inferred latent state",
         DefaultGUIModel::OUTPUT,
     },
 
@@ -131,7 +143,7 @@ void HmmGenerator::stepHMM(void)
 
   output(0) = spike;
 
-  output(1) = tstate; //starting at 0 convetion
+  output(1) = tstate; //starting at 0 convention
   output(2) = gstate; //starting at 0 convention
 }
 
@@ -159,7 +171,10 @@ void HmmGenerator::decodeSpkBuffer()
 void HmmGenerator::restartHMM()
 {
   std::vector<double> PI(2, .5);
-  guess_hmm = HMMv(2, 2, vTr, vFr, PI);
+  // guess_hmm = HMMv(2, 2, vTr, vFr, PI); //OLD
+  guess_hmm = HMMv(nStates, 2); //NEW
+  // guess_hmm = HMMv(5, 5);//, vTr, vFr, PI);
+
   //for new method it's Tr then Fr //    guess_hmm = HMMv(2,2,vFr,vTr,PI);
 
   guess_hmm.genSeq(bufflen); //new, probably extraneous
@@ -184,6 +199,7 @@ void HmmGenerator::initParameters(void)
   vFr = {pfr1, pfr2};
   vTr = {ptr1, ptr2};
 
+  nStates = 2; //new
   buffi = 0;
   bufflen = 3000;
 
@@ -204,6 +220,10 @@ void HmmGenerator::update(DefaultGUIModel::update_flags_t flag)
     period = RT::System::getInstance()->getPeriod() * 1e-6; // ms
     period_ms = period * 1e-3;
     setParameter("Debug label", 10.3);
+
+    setParameter("Num States", 2); //NEW
+    setParameter("Buffer Length", 1000); //NEW
+
     setParameter("FR 1", pfr1 / period_ms);
     setParameter("FR 2", pfr2 / period_ms);
     setParameter("TR 1", ptr1 / period_ms);
@@ -220,6 +240,10 @@ void HmmGenerator::update(DefaultGUIModel::update_flags_t flag)
     if (getSkip == 0)
     {
       printf("\n**ModMod\n");
+
+      nStates = getParameter("Num States").toInt(); //NEW
+      bufflen = getParameter("Buffer Length").toInt(); //NEW
+
       pfr1 = getParameter("FR 1").toDouble() * period_ms;
       pfr2 = getParameter("FR 2").toDouble() * period_ms;
       ptr1 = getParameter("TR 1").toDouble() * period_ms;

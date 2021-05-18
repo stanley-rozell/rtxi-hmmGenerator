@@ -23,9 +23,6 @@
 #ifndef HMM_GENERATOR_H
 #define HMM_GENERATOR_H
 
-//#include "Time.h"
-
-//#include "include/BabyClass.h" // todo deleteme
 #include <default_gui_model.h>
 #include <vector>
 #include <iterator> //
@@ -57,6 +54,8 @@ private:
   double period_ms;
   double spike;
   int gstate;
+
+  int nStates; //new
 
   int bufflen;
   int buffi;

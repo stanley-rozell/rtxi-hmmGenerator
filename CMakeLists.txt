@@ -68,6 +68,11 @@ set(PROJECT_REQUIRED_LIBRARIES_ABSOLUTE_NAME ";")#absolute path to libraries
 set(PROJECT_REQUIRED_LIBRARIES_SHORT_NAME ";")#short name of library
 # (i.e. short_name in `/path/to/lib*short_name*.so`)
 
+# set(Qt5_DIR /Users/adam/Qt/5.9.1/clang_64/lib/cmake/Qt5)
+# #set(Qt5Core_DIR /Users/adam/Qt/5.9.1/clang_64/lib/cmake/Qt5)
+# # set(Qt5Core_DIR /usr/local/opt/qt@5/lib/cmake/Qt5Core)
+# message(STATUS " !!! addding path to Qt5 manually !!!! -> ${Qt5_DIR}")
+
 # There may be differences in how you handle this as a function of OS
 if(APPLE)
   message(STATUS "Detected macOS")
