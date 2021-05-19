@@ -40,11 +40,7 @@ to do list:
 #include <main_window.h>
 //#include "../../../module_help/StAC_rtxi/hmm_tests/hmm_fs.hpp"
 
-extern "C" Plugin::Object *
-createRTXIPlugin(void)
-{
-  return new HmmGenerator();
-}
+extern "C" Plugin::Object *createRTXIPlugin(void) { return new HmmGenerator(); }
 
 static DefaultGUIModel::variable_t vars[] = {
     {
@@ -65,22 +61,22 @@ static DefaultGUIModel::variable_t vars[] = {
 
     {
         "FR 1",
-        "Firing rate",
+        "[NULL] Firing rate",
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE,
     },
     {
         "FR 2",
-        "Firing rate",
+        "[NULL] Firing rate",
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE,
     },
     {
         "TR 1",
-        "Transition rate",
+        "[NULL] Transition rate",
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE,
     },
     {
         "TR 2",
-        "Transition rate",
+        "[NULL] Transition rate",
         DefaultGUIModel::PARAMETER | DefaultGUIModel::DOUBLE,
     },
     {
@@ -104,8 +100,7 @@ static DefaultGUIModel::variable_t vars[] = {
 static size_t num_vars = sizeof(vars) / sizeof(DefaultGUIModel::variable_t);
 
 HmmGenerator::HmmGenerator(void)
-    : DefaultGUIModel("HmmGenerator with Custom GUI", ::vars, ::num_vars)
-{
+    : DefaultGUIModel("HmmGenerator - DECODING DISABLED", ::vars, ::num_vars) {
   setWhatsThis("<p><b>HmmGenerator:</b><br>QWhatsThis description.</p>");
   DefaultGUIModel::createGUI(vars,
                              num_vars); // this is required to create the GUI
@@ -117,77 +112,71 @@ HmmGenerator::HmmGenerator(void)
                 // values
 
   printf("\n");
-  //update(INIT);
-  //refresh();
+  // update(INIT);
+  // refresh();
   QTimer::singleShot(0, this, SLOT(resizeMe()));
 }
 
-HmmGenerator::~HmmGenerator(void)
-{
-}
+HmmGenerator::~HmmGenerator(void) {}
 
-void HmmGenerator::stepHMM(void)
-{
+void HmmGenerator::stepHMM(void) {
   buffi++;
-  if (buffi >= bufflen)
-  {
-    //reset the index
+  if (buffi >= bufflen) {
+    // reset the index
     buffi = 0;
-    //generate a new chunk of observations!
+    // generate a new chunk of observations!
     restartHMM();
   }
 
   spike = spike_buff[buffi];
   int tstate = state_buff[buffi];
-  gstate = state_guess_buff[buffi]; //seems weird... only updating the guess when the buffer resets
+
+  gstate = -1;//state_guess_buff[buffi]; // seems weird... only updating the guess
+                                    // when the buffer resets
 
   output(0) = spike;
 
-  output(1) = tstate; //starting at 0 convention
-  output(2) = gstate; //starting at 0 convention
+  output(1) = tstate; // starting at 0 convention
+  output(2) = gstate; // starting at 0 convention
 }
 
-void HmmGenerator::execute(void)
-{
+void HmmGenerator::execute(void) {
   stepHMM();
   return;
 }
 
-int *HmmGenerator::decodeHMM(HMMv guess_hmm_)
-{
+int *HmmGenerator::decodeHMM(HMMv guess_hmm_) {
   int *guessed = viterbi(guess_hmm_, spike_buff, bufflen);
   return guessed;
 }
-void HmmGenerator::decodeSpkBuffer()
-{
+void HmmGenerator::decodeSpkBuffer() {
   int *guessed = decodeHMM(guess_hmm);
-  //NB: no idea why this temporary vector is necessary. should be able to replace this with one line...
+  // NB: no idea why this temporary vector is necessary. should be able to
+  // replace this with one line...
   std::vector<int> temp_vec(guessed, guessed + bufflen);
   state_guess_buff = temp_vec;
 
   delete[] guessed;
 }
 
-void HmmGenerator::restartHMM()
-{
+void HmmGenerator::restartHMM() {
   std::vector<double> PI(2, .5);
   // guess_hmm = HMMv(2, 2, vTr, vFr, PI); //OLD
-  guess_hmm = HMMv(nStates, 2); //NEW
+  guess_hmm = HMMv(nStates, 2); // NEW
   // guess_hmm = HMMv(5, 5);//, vTr, vFr, PI);
 
-  //for new method it's Tr then Fr //    guess_hmm = HMMv(2,2,vFr,vTr,PI);
+  // for new method it's Tr then Fr //    guess_hmm = HMMv(2,2,vFr,vTr,PI);
 
-  guess_hmm.genSeq(bufflen); //new, probably extraneous
+  guess_hmm.genSeq(bufflen); // new, probably extraneous
   spike_buff = guess_hmm.spikes;
   state_buff = guess_hmm.states;
 
-  //removing this to test whether it's necessary for the memory leak!
-  decodeSpkBuffer();
-  //printf("HMM restarted\n");
+  // removing this to test whether it's necessary for the memory leak!
+  // decodeSpkBuffer();
+  // printf("HMM restarted\n");
 }
 
-void HmmGenerator::initParameters(void)
-{
+void HmmGenerator::initParameters(void) {
   spike = 0;
   gstate = 0;
 
@@ -199,7 +188,7 @@ void HmmGenerator::initParameters(void)
   vFr = {pfr1, pfr2};
   vTr = {ptr1, ptr2};
 
-  nStates = 2; //new
+  nStates = 2; // new
   buffi = 0;
   bufflen = 3000;
 
@@ -209,20 +198,18 @@ void HmmGenerator::initParameters(void)
   stepHMM();
 }
 
-void HmmGenerator::update(DefaultGUIModel::update_flags_t flag)
-{
+void HmmGenerator::update(DefaultGUIModel::update_flags_t flag) {
   double foo;
 
-  switch (flag)
-  {
+  switch (flag) {
   case INIT:
     printf("Init called\n");
     period = RT::System::getInstance()->getPeriod() * 1e-6; // ms
     period_ms = period * 1e-3;
     setParameter("Debug label", 10.3);
 
-    setParameter("Num States", 2); //NEW
-    setParameter("Buffer Length", 1000); //NEW
+    setParameter("Num States", nStates);       // NEW
+    setParameter("Buffer Length", bufflen); // NEW
 
     setParameter("FR 1", pfr1 / period_ms);
     setParameter("FR 2", pfr2 / period_ms);
@@ -235,28 +222,26 @@ void HmmGenerator::update(DefaultGUIModel::update_flags_t flag)
 
     buffi = 0;
 
-    //this skip business is probably unnecessary, but for some reason this seems to reset values to zero and prevent the INIT clause from taking effect
-    //look at hmm_decoder for an example which doesn't require this...
-    if (getSkip == 0)
-    {
+    // this skip business is probably unnecessary, but for some reason this
+    // seems to reset values to zero and prevent the INIT clause from taking
+    // effect look at hmm_decoder for an example which doesn't require this...
+    if (getSkip == 0) {
       printf("\n**ModMod\n");
 
-      nStates = getParameter("Num States").toInt(); //NEW
-      bufflen = getParameter("Buffer Length").toInt(); //NEW
+      nStates = getParameter("Num States").toInt();    // NEW
+      bufflen = getParameter("Buffer Length").toInt(); // NEW
 
       pfr1 = getParameter("FR 1").toDouble() * period_ms;
       pfr2 = getParameter("FR 2").toDouble() * period_ms;
       ptr1 = getParameter("TR 1").toDouble() * period_ms;
       ptr2 = getParameter("TR 2").toDouble() * period_ms;
-    }
-    else
-    {
+    } else {
       getSkip = 0;
       printf("\n**Mod skip\n");
     }
     printf("F:%.3f, %.3f, T:%.3f, %.3f\n", pfr1, pfr2, ptr1, ptr2);
 
-    //Set up the params for the new HMM
+    // Set up the params for the new HMM
     vFr = {pfr1, pfr2};
     vTr = {ptr1, ptr2};
     restartHMM();
@@ -279,28 +264,24 @@ void HmmGenerator::update(DefaultGUIModel::update_flags_t flag)
   }
 }
 
-void HmmGenerator::printStuff(void)
-{
-  spike_buff[buffi] = 99; //hopefully trigger hmm_decoder to print also
+void HmmGenerator::printStuff(void) {
+  spike_buff[buffi] = 99; // hopefully trigger hmm_decoder to print also
   spike_buff[buffi + 1] = 99;
   spike_buff[buffi + 2] = 99;
   spike_buff[buffi + 3] = 99;
   printf("\n\n generator;spike_buff=[");
-  for (int i = 0; i < bufflen; i++)
-  {
+  for (int i = 0; i < bufflen; i++) {
     printf("%d,", spike_buff[i]);
   }
 
   printf("];\nstate_guess=[");
-  for (int i = 0; i < bufflen; i++)
-  {
+  for (int i = 0; i < bufflen; i++) {
     printf("%d,", state_guess_buff[i]);
   }
   printf("];endgen;");
 }
 
-void HmmGenerator::customizeGUI(void)
-{
+void HmmGenerator::customizeGUI(void) {
   QGridLayout *customlayout = DefaultGUIModel::getLayout();
 
   QGroupBox *button_group = new QGroupBox;
@@ -316,7 +297,4 @@ void HmmGenerator::customizeGUI(void)
 }
 
 // functions designated as Qt slots are implemented as regular C++ functions
-void HmmGenerator::aBttn_event(void)
-{
-  printStuff();
-}
+void HmmGenerator::aBttn_event(void) { printStuff(); }
