@@ -74,7 +74,7 @@ private:
   std::vector<double> vTr;
 
   //HMM guess_hmm;
-  HMMv guess_hmm = HMMv();
+  HMMv guess_hmm = HMMv(); // should be called true_hmm
   //NB: this method declaration needs to go somewhere else!!
 
   void initParameters();

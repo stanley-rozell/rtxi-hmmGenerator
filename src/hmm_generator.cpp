@@ -120,13 +120,26 @@ HmmGenerator::HmmGenerator(void)
 HmmGenerator::~HmmGenerator(void) {}
 
 void HmmGenerator::stepHMM(void) {
-  buffi++;
-  if (buffi >= bufflen) {
-    // reset the index
-    buffi = 0;
-    // generate a new chunk of observations!
-    restartHMM();
-  }
+
+    //for benchmarking, only generate one sample of output at a time
+    //generate one sample
+
+    // generate a two-sample sequence
+    // first sample is spikes given current state
+    // second sample is next state value, next spike
+    guess_hmm.genSeq(2, tstate);
+    spike_buff = guess_hmm.spikes;
+    state_buff = guess_hmm.states;
+    buffi = 1;
+
+// removed for benchmarking, don't want to generate a buffer full of spikes
+  // buffi++;
+  // if (buffi >= bufflen) {
+  //   // reset the index
+  //   buffi = 0;
+  //   // generate a new chunk of observations!
+  //   restartHMM();
+  // }
 
   spike = spike_buff[buffi];
   int tstate = state_buff[buffi];
@@ -135,7 +148,6 @@ void HmmGenerator::stepHMM(void) {
                                     // when the buffer resets
 
   output(0) = spike;
-
   output(1) = tstate; // starting at 0 convention
   output(2) = gstate; // starting at 0 convention
 }
@@ -160,7 +172,7 @@ void HmmGenerator::decodeSpkBuffer() {
 }
 
 void HmmGenerator::restartHMM() {
-  std::vector<double> PI(2, .5);
+  // std::vector<double> PI(2, .5);
   // guess_hmm = HMMv(2, 2, vTr, vFr, PI); //OLD
   guess_hmm = HMMv(nStates, 2); // NEW
   // guess_hmm = HMMv(5, 5);//, vTr, vFr, PI);
