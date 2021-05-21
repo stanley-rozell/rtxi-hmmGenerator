@@ -142,7 +142,7 @@ void HmmGenerator::stepHMM(void) {
   // }
 
   spike = spike_buff[buffi];
-  int tstate = state_buff[buffi];
+  tstate = state_buff[buffi];
 
   gstate = -1;//state_guess_buff[buffi]; // seems weird... only updating the guess
                                     // when the buffer resets

@@ -54,6 +54,7 @@ private:
   double period_ms;
   double spike;
   int gstate;
+  int tstate;
 
   int nStates; //new
 
