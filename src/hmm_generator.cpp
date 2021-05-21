@@ -257,6 +257,9 @@ void HmmGenerator::update(DefaultGUIModel::update_flags_t flag) {
     vFr = {pfr1, pfr2};
     vTr = {ptr1, ptr2};
     restartHMM();
+      stepHMM();
+
+    printf("successfully modified HMM")
 
     break;
 
