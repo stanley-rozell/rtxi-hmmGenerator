@@ -211,7 +211,7 @@ void HmmGenerator::initParameters(void) {
 }
 
 void HmmGenerator::update(DefaultGUIModel::update_flags_t flag) {
-  double foo;
+  // double foo;
 
   switch (flag) {
   case INIT:
@@ -259,7 +259,7 @@ void HmmGenerator::update(DefaultGUIModel::update_flags_t flag) {
     restartHMM();
       stepHMM();
 
-    printf("successfully modified HMM")
+    printf("successfully modified HMM");
 
     break;
 
